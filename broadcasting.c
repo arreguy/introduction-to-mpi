@@ -1,5 +1,5 @@
-#include <iostream>
-#include <iomanip>
+#include <stdio.h>
+#include <stdlib.h>
 #include <mpi.h>
 
 int main(int argc, char **argv) {
@@ -13,26 +13,24 @@ int main(int argc, char **argv) {
   int n_elements;
   double *buffer;
   if (rank == 0) {
-    std::cin >> n_elements;
-    buffer = new double[n_elements];
+    scanf("%d", &n_elements);
+    buffer = (double *)malloc(n_elements * sizeof(double));
     
-    for (int i=0; i < n_elements; ++i)
-      std::cin >> buffer[i];
+    for (int i = 0; i < n_elements; ++i)
+      scanf("%lf", &buffer[i]);
   }
 
   // 1- Broadcast the value n_elements to all processes
-   MPI_Bcast(&n_elements, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
+  MPI_Bcast(&n_elements, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Here we create the buffers for the non-root processes now that
   // we have n_elements
   if (rank != 0)
-    buffer = new double[n_elements];
+    buffer = (double *)malloc(n_elements * sizeof(double));
 
   // 2- Broadcast the buffer to every process
-  //    NOTE : The type here should be MPI_DOUBLE not MPI_FLOAT !
+  //    NOTE: The type here should be MPI_DOUBLE not MPI_FLOAT!
   MPI_Bcast(buffer, n_elements, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  
 
   // 3- Compute the sum depending on the rank
   double sum = 0.0;
@@ -49,13 +47,12 @@ int main(int argc, char **argv) {
         sum += buffer[i];
   }
 
-  
   // Printing the result and terminating the program
   // Precision is set high for the validation process, please do not modify this.
-  std::cout << std::setprecision(16) << sum << std::endl;
-  
+  printf("%.16lf\n", sum);
+
   MPI_Finalize();
-  delete [] buffer;
+  free(buffer);
 
   return 0;
 }
